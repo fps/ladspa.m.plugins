@@ -15,6 +15,12 @@ static const char* ladspam_port_names[] =
     "Out"
 };
 
+static const int FREQUENCY = 0;
+static const int GATE = 1;
+static const int TRIGGER = 2;
+static const int PHASE = 3;
+static const int OUT = 4;
+
 static LADSPA_PortDescriptor ladspam_port_descriptors[] = 
 {
     LADSPA_PORT_AUDIO | LADSPA_PORT_INPUT,
@@ -36,6 +42,7 @@ static LADSPA_PortRangeHint ladspam_port_range_hints[] =
 struct ladspam_plugin
 {
     float m_phase;
+	float m_last_trigger;
 
     float *m_ports[LADSPAM_NUMBER_OF_PORTS];
 
@@ -43,44 +50,45 @@ struct ladspam_plugin
 
     ladspam_plugin(unsigned long sample_rate) :
         m_phase(0),
+		m_last_trigger(0),
         m_sample_rate(sample_rate)
     {
 
     }
 };
 
-LADSPA_Handle ladspam_instantiate(const LADSPA_Descriptor *descriptor, unsigned long sample_rate)
+static LADSPA_Handle ladspam_instantiate(const LADSPA_Descriptor *descriptor, unsigned long sample_rate)
 {
     return new ladspam_plugin(sample_rate);    
 }
 
-void ladspam_cleanup(LADSPA_Handle instance)
+static void ladspam_cleanup(LADSPA_Handle instance)
 {
     delete (ladspam_plugin*)instance;
 }
 
-void ladspam_connect_port(LADSPA_Handle instance, unsigned long port, LADSPA_Data * data_location)
+static void ladspam_connect_port(LADSPA_Handle instance, unsigned long port, LADSPA_Data * data_location)
 {
     ((ladspam_plugin*)instance)->m_ports[port] = data_location;
 }
 
-void ladspam_run_sine(LADSPA_Handle instance, unsigned long sample_count)
+static void ladspam_run_sine(LADSPA_Handle instance, unsigned long sample_count)
 {
     ladspam_plugin *i = (ladspam_plugin*)instance;
     for (unsigned long index = 0; index < sample_count; ++index)
     {
-        i->m_phase += i->m_ports[0][index] * 2.0 * M_PI / i->m_sample_rate;
+        i->m_phase += i->m_ports[FREQUENCY][index] * 2.0 * M_PI / i->m_sample_rate;
         i->m_phase = fmod(i->m_phase, 2.0 * M_PI);
-        i->m_ports[4][index] = sin(i->m_phase);
+        i->m_ports[OUT][index] = sin(i->m_phase);
     }
 }
 
-void ladspam_run_sawtooth(LADSPA_Handle instance, unsigned long sample_count)
+static void ladspam_run_sawtooth(LADSPA_Handle instance, unsigned long sample_count)
 {
 
 }
 
-void ladspam_run_square(LADSPA_Handle instance, unsigned long sample_count)
+static void ladspam_run_square(LADSPA_Handle instance, unsigned long sample_count)
 {
 
 }
