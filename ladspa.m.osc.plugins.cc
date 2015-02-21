@@ -89,12 +89,38 @@ static void ladspam_run_sine(LADSPA_Handle instance, unsigned long sample_count)
 
 static void ladspam_run_sawtooth(LADSPA_Handle instance, unsigned long sample_count)
 {
+	ladspam_plugin &i = *(ladspam_plugin*)instance;
+	for (unsigned long index = 0; index < sample_count; ++index)
+	{
+		float trigger = i.m_ports[TRIGGER][index];
+		if (trigger != 0 && i.m_last_trigger == 0) 
+		{
+			i.m_phase = 0;
+		}
+		i.m_last_trigger = trigger;
 
+		i.m_phase += i.m_ports[FREQUENCY][index] * 2.0f * (float)M_PI / (float)i.m_sample_rate;
+		i.m_phase = fmodf(i.m_phase, 2.0f * (float)M_PI);
+		i.m_ports[OUT][index] = (i.m_phase + i.m_ports[PHASE][index] - (float)M_PI)/(float)M_PI;
+	}
 }
 
 static void ladspam_run_square(LADSPA_Handle instance, unsigned long sample_count)
 {
+	ladspam_plugin &i = *(ladspam_plugin*)instance;
+	for (unsigned long index = 0; index < sample_count; ++index)
+	{
+		float trigger = i.m_ports[TRIGGER][index];
+		if (trigger != 0 && i.m_last_trigger == 0) 
+		{
+			i.m_phase = 0;
+		}
+		i.m_last_trigger = trigger;
 
+		i.m_phase += i.m_ports[FREQUENCY][index] * 2.0f * (float)M_PI / (float)i.m_sample_rate;
+		i.m_phase = fmodf(i.m_phase, 2.0f * (float)M_PI);
+		i.m_ports[OUT][index] = (i.m_phase + i.m_ports[PHASE][index]) > (float)M_PI ? -1.0f : 1.0f;
+	}
 }
 
 const LADSPA_Descriptor* ladspa_descriptor(unsigned long Index)
