@@ -39,12 +39,15 @@ struct ladspam_plugin
 {
 	float m_phase;
 
+	float m_last_trigger;
+
 	float *m_ports[LADSPAM_NUMBER_OF_PORTS];
 
 	unsigned long m_sample_rate;
 
 	ladspam_plugin(unsigned long sample_rate) :
 		m_phase(0),
+		m_last_trigger(0),
 		m_sample_rate(sample_rate)
 	{
 
@@ -71,10 +74,12 @@ static void ladspam_run_sine(LADSPA_Handle instance, unsigned long sample_count)
 	ladspam_plugin &i = *(ladspam_plugin*)instance;
 	for (unsigned long index = 0; index < sample_count; ++index)
 	{
-		if (i.m_ports[TRIGGER][index] != 0) 
+		float trigger = i.m_ports[TRIGGER][index];
+		if (trigger != 0 && i.m_last_trigger == 0) 
 		{
 			i.m_phase = 0;
 		}
+		i.m_last_trigger = trigger;
 		i.m_phase += i.m_ports[FREQUENCY][index] * 2.0f * (float)M_PI / (float)i.m_sample_rate;
 		i.m_phase = fmodf(i.m_phase, 2.0f * (float)M_PI);
 		i.m_ports[OUT][index] = sinf(i.m_phase);
