@@ -13,7 +13,7 @@ install: all
 	$(INSTALL) ladspam-0-osc-plugins.so $(PREFIX)/lib/ladspa
 
 ladspam-0-osc-plugins.so: ladspam-osc-plugins.cc
-	g++ $(CXXFLAGS) -std=c++11 -shared -fPIC -o ladspam-0-osc-plugins.so ladspam-osc-plugins.cc
+	g++ $(CXXFLAGS) -std=c++11 -Wall -shared -fPIC -o ladspam-0-osc-plugins.so ladspam-osc-plugins.cc
 
 clean:
 	rm -f ladspam-0-osc-plugins.so

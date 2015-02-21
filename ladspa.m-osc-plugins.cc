@@ -4,22 +4,20 @@
 static const int LADSPAM_NUMBER_OF_PLUGINS = 3;
 static LADSPA_Descriptor ladspam_descriptors[LADSPAM_NUMBER_OF_PLUGINS];
 
-static const int LADSPAM_NUMBER_OF_PORTS = 5;
+static const int LADSPAM_NUMBER_OF_PORTS = 4;
 
 static const char* ladspam_port_names[] = 
 {
     "Frequency",
-    "Gate",
-    "Trigger",
     "Phase",
+    "Trigger",
     "Out"
 };
 
 static const int FREQUENCY = 0;
-static const int GATE = 1;
+static const int PHASE = 1;
 static const int TRIGGER = 2;
-static const int PHASE = 3;
-static const int OUT = 4;
+static const int OUT = 3;
 
 static LADSPA_PortDescriptor ladspam_port_descriptors[] = 
 {
@@ -35,14 +33,12 @@ static LADSPA_PortRangeHint ladspam_port_range_hints[] =
     { LADSPA_HINT_SAMPLE_RATE | LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE | LADSPA_HINT_DEFAULT_440, 0.0, 0.5 },
     { LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE | LADSPA_HINT_DEFAULT_MAXIMUM, 0.0, 1.0 },
     { LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE | LADSPA_HINT_DEFAULT_MINIMUM, 0.0, 1.0 },
-    { LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE | LADSPA_HINT_DEFAULT_MINIMUM, 0.0, 1.0 },
     { 0, 0.0, 0.0 }
 };
 
 struct ladspam_plugin
 {
     float m_phase;
-	float m_last_trigger;
 
     float *m_ports[LADSPAM_NUMBER_OF_PORTS];
 
@@ -50,7 +46,6 @@ struct ladspam_plugin
 
     ladspam_plugin(unsigned long sample_rate) :
         m_phase(0),
-		m_last_trigger(0),
         m_sample_rate(sample_rate)
     {
 
@@ -74,12 +69,13 @@ static void ladspam_connect_port(LADSPA_Handle instance, unsigned long port, LAD
 
 static void ladspam_run_sine(LADSPA_Handle instance, unsigned long sample_count)
 {
-    ladspam_plugin *i = (ladspam_plugin*)instance;
+    ladspam_plugin &i = *(ladspam_plugin*)instance;
     for (unsigned long index = 0; index < sample_count; ++index)
     {
-        i->m_phase += i->m_ports[FREQUENCY][index] * 2.0 * M_PI / i->m_sample_rate;
-        i->m_phase = fmod(i->m_phase, 2.0 * M_PI);
-        i->m_ports[OUT][index] = sin(i->m_phase);
+		if (i.m_ports[TRIGGER][index] != 0) i.m_phase = 0;
+        i.m_phase += i.m_ports[FREQUENCY][index] * 2.0 * M_PI / i.m_sample_rate;
+        i.m_phase = fmod(i.m_phase + i.m_ports[PHASE][index], 2.0 * M_PI);
+        i.m_ports[OUT][index] = sinf(i.m_phase);
     }
 }
 
