@@ -59,11 +59,12 @@ message(STATUS "The build type is: " ${CMAKE_BUILD_TYPE})
 # TARGETS
 # 
 
-add_library(ladspa.m.osc-plugins-${PROJECT_VERSION} SHARED ladspa.m-osc-plugins.cc)
+add_library(ladspa.m.osc.plugins-${PROJECT_VERSION} SHARED ladspa.m.osc.plugins.cc)
+set_target_properties(ladspa.m.osc.plugins-${PROJECT_VERSION} PROPERTIES PREFIX "")
 
 # 
 # INSTALLATION
 # 
 
-install(TARGETS ladspa.m.osc-plugins-${PROJECT_VERSION} LIBRARY DESTINATION lib/ladspa)
+install(TARGETS ladspa.m.osc.plugins-${PROJECT_VERSION} LIBRARY DESTINATION lib/ladspa)
 
