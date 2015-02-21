@@ -69,6 +69,11 @@ static void ladspam_connect_port(LADSPA_Handle instance, unsigned long port, LAD
 	((ladspam_plugin*)instance)->m_ports[port] = data_location;
 }
 
+static float ladspam_effective_phase(LADSPA_Handle instance, unsigned long sample_count)
+{
+	return 0.0f;
+}
+
 static void ladspam_run_sine(LADSPA_Handle instance, unsigned long sample_count)
 {
 	ladspam_plugin &i = *(ladspam_plugin*)instance;
@@ -80,6 +85,7 @@ static void ladspam_run_sine(LADSPA_Handle instance, unsigned long sample_count)
 			i.m_phase = 0;
 		}
 		i.m_last_trigger = trigger;
+
 		i.m_phase += i.m_ports[FREQUENCY][index] * 2.0f * (float)M_PI / (float)i.m_sample_rate;
 		i.m_phase = fmodf(i.m_phase, 2.0f * (float)M_PI);
 		i.m_ports[OUT][index] = sinf(i.m_phase);
