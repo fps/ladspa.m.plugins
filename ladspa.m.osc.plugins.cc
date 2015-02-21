@@ -30,7 +30,7 @@ static LADSPA_PortDescriptor ladspam_port_descriptors[] =
 static LADSPA_PortRangeHint ladspam_port_range_hints[] = 
 {
 	{ LADSPA_HINT_SAMPLE_RATE | LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE | LADSPA_HINT_DEFAULT_440, 0.0, 0.5 },
-	{ LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE | LADSPA_HINT_DEFAULT_MINIMUM, (float)(-2*M_PI), (float)(2*M_PI) },
+	{ LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE | LADSPA_HINT_DEFAULT_MIDDLE, (float)(-2*M_PI), (float)(2*M_PI) },
 	{ LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE | LADSPA_HINT_DEFAULT_MINIMUM, 0.0, 1.0 },
 	{ 0, 0.0, 0.0 }
 };
@@ -69,11 +69,6 @@ static void ladspam_connect_port(LADSPA_Handle instance, unsigned long port, LAD
 	((ladspam_plugin*)instance)->m_ports[port] = data_location;
 }
 
-static float ladspam_effective_phase(LADSPA_Handle instance, unsigned long sample_count)
-{
-	return 0.0f;
-}
-
 static void ladspam_run_sine(LADSPA_Handle instance, unsigned long sample_count)
 {
 	ladspam_plugin &i = *(ladspam_plugin*)instance;
@@ -88,7 +83,7 @@ static void ladspam_run_sine(LADSPA_Handle instance, unsigned long sample_count)
 
 		i.m_phase += i.m_ports[FREQUENCY][index] * 2.0f * (float)M_PI / (float)i.m_sample_rate;
 		i.m_phase = fmodf(i.m_phase, 2.0f * (float)M_PI);
-		i.m_ports[OUT][index] = sinf(i.m_phase);
+		i.m_ports[OUT][index] = sinf(i.m_phase + i.m_ports[PHASE][index]);
 	}
 }
 
