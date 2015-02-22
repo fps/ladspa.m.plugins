@@ -30,7 +30,7 @@ static LADSPA_PortDescriptor ladspam_port_descriptors[] =
 static LADSPA_PortRangeHint ladspam_port_range_hints[] = 
 {
 	{ LADSPA_HINT_SAMPLE_RATE | LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE | LADSPA_HINT_DEFAULT_440, 0.0, 0.5 },
-	{ LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE | LADSPA_HINT_DEFAULT_MIDDLE, (float)(-2*M_PI), (float)(2*M_PI) },
+	{ LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE | LADSPA_HINT_DEFAULT_MIDDLE, (float)(-2.0*M_PI), (float)(2.0*M_PI) },
 	{ LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE | LADSPA_HINT_DEFAULT_MINIMUM, 0.0, 1.0 },
 	{ 0, 0.0, 0.0 }
 };
@@ -81,9 +81,10 @@ static void ladspam_run_sine(LADSPA_Handle instance, unsigned long sample_count)
 		}
 		i.m_last_trigger = trigger;
 
+		i.m_ports[OUT][index] = sinf(i.m_phase + i.m_ports[PHASE][index]);
+
 		i.m_phase += i.m_ports[FREQUENCY][index] * 2.0f * (float)M_PI / (float)i.m_sample_rate;
 		i.m_phase = fmodf(i.m_phase, 2.0f * (float)M_PI);
-		i.m_ports[OUT][index] = sinf(i.m_phase + i.m_ports[PHASE][index]);
 	}
 }
 
@@ -135,7 +136,7 @@ const LADSPA_Descriptor* ladspa_descriptor(unsigned long Index)
 	d->Properties = LADSPA_PROPERTY_REALTIME | LADSPA_PROPERTY_HARD_RT_CAPABLE;
 	d->Maker = "Florian Paul Schmidt";
 	d->Copyright = "GPL v2 or later";
-	d->PortCount = /* freq phase gate trigger */ 4 + /* out */ 1;	
+	d->PortCount = LADSPAM_NUMBER_OF_PORTS;
 	
 	d->PortDescriptors = ladspam_port_descriptors;
 	d->PortRangeHints = ladspam_port_range_hints;
