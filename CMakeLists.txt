@@ -2,7 +2,7 @@ cmake_minimum_required (VERSION 2.8)
 
 
 # possible values: Release, Debug, RelWithDebugInfo
-# set(CMAKE_BUILD_TYPE RelWithDebugInfo)
+set(CMAKE_BUILD_TYPE RelWithDebugInfo)
 
 project(ladspa.m.plugins)
 set(PROJECT_VERSION "1")
@@ -27,7 +27,7 @@ set(CMAKE_VERBOSE_MAKEFILE off)
 
 add_definitions(-DPROJECT_VERSION=\"${PROJECT_VERSION}\")
 
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wconversion -Wall -pthread -fmax-errors=1")
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wconversion -Wall -pthread -fmax-errors=1")
 
 if(CMAKE_BUILD_TYPE MATCHES Debug)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 -pg")
@@ -61,6 +61,9 @@ message(STATUS "The build type is: " ${CMAKE_BUILD_TYPE})
 
 add_library(ladspa.m.osc.plugins-${PROJECT_VERSION} SHARED ladspa.m.osc.plugins.cc)
 set_target_properties(ladspa.m.osc.plugins-${PROJECT_VERSION} PROPERTIES PREFIX "")
+
+add_executable(ladspa.m.osc.plugins.test-${PROJECT_VERSION} ladspa.m.osc.plugins.cc)
+set_target_properties(ladspa.m.osc.plugins.test-${PROJECT_VERSION} PROPERTIES  COMPILE_FLAGS "-DLADSPAM_MAIN_CC")
 
 # 
 # INSTALLATION

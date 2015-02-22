@@ -176,3 +176,36 @@ const LADSPA_Descriptor* ladspa_descriptor(unsigned long Index)
 	return d;
 }
 
+#ifdef LADSPAM_MAIN_CC
+
+#include <iostream>
+#include <vector>
+
+int main()
+{
+	const unsigned long sample_rate = 1000;
+	const float frequency = 1.0;
+	const unsigned long buffer_size = 2000;
+	const LADSPA_Descriptor *d = ladspa_descriptor(0);
+	LADSPA_Handle h = d->instantiate(d, sample_rate);
+	std::vector<std::vector<float>> buffers;
+	for (size_t index = 0; index < LADSPAM_NUMBER_OF_PORTS; ++index)
+	{
+		buffers.push_back(std::vector<float>(buffer_size,0));
+		d->connect_port(h, index, &(buffers[index][0]));
+	}
+	for (size_t index = 0; index < buffer_size; ++index)
+	{
+		buffers[0][index] = frequency;
+		buffers[1][index] = 0;
+		buffers[2][index] = 0;
+	}
+	d->run(h, buffer_size);
+	for (size_t index = 0; index < buffer_size; ++index)
+	{
+		std::cout << buffers[3][index] << std::endl;
+	}
+}
+
+#endif
+
