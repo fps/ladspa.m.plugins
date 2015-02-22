@@ -205,6 +205,7 @@ int main()
 	{
 		std::cout << buffers[3][index] << std::endl;
 	}
+	d->cleanup(h);
 }
 
 #endif
