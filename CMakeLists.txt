@@ -61,6 +61,9 @@ message(STATUS "The build type is: " ${CMAKE_BUILD_TYPE})
 
 add_library(ladspa.m.osc.plugins-${PROJECT_VERSION} SHARED ladspa.m.osc.plugins.cc)
 set_target_properties(ladspa.m.osc.plugins-${PROJECT_VERSION} PROPERTIES PREFIX "")
+add_library(ladspa.m.env.plugins-${PROJECT_VERSION} SHARED ladspa.m.env.plugins.cc)
+set_target_properties(ladspa.m.env.plugins-${PROJECT_VERSION} PROPERTIES PREFIX "")
+
 
 add_executable(ladspa.m.osc.plugins.test-${PROJECT_VERSION} ladspa.m.osc.plugins.cc)
 set_target_properties(ladspa.m.osc.plugins.test-${PROJECT_VERSION} PROPERTIES  COMPILE_FLAGS "-DLADSPAM_MAIN_CC")
@@ -69,5 +72,6 @@ set_target_properties(ladspa.m.osc.plugins.test-${PROJECT_VERSION} PROPERTIES  C
 # INSTALLATION
 # 
 
-install(TARGETS ladspa.m.osc.plugins-${PROJECT_VERSION} LIBRARY DESTINATION lib/ladspa)
 
+install(TARGETS ladspa.m.osc.plugins-${PROJECT_VERSION} LIBRARY DESTINATION lib/ladspa)
+install(TARGETS ladspa.m.env.plugins-${PROJECT_VERSION} LIBRARY DESTINATION lib/ladspa)
