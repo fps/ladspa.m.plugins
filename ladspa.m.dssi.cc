@@ -1,34 +1,57 @@
 #include <ladspa.h>
+#include <dssi.h>
+
 #include <cmath>
+#include <vector>
 
-static const int LADSPAM_NUMBER_OF_PLUGINS = 1;
-static LADSPA_Descriptor ladspam_descriptors[LADSPAM_NUMBER_OF_PLUGINS];
+static DSSI_Descriptor ladspam_dssi_descriptor;
 
-static const int LADSPAM_NUMBER_OF_PORTS = 3;
+static LADSPA_Descriptor ladspam_ladspa_descriptor;
 
-static const char* ladspam_port_names[] = 
+static const int LADSPAM_NUMBER_OF_AUDIO_CHANNELS = 2;
+static const int LADSPAM_NUMBER_OF_CONTROL_PORTS = 8;
+static const int LADSPAM_NUMBER_OF_PORTS = LADSPAM_NUMBER_OF_AUDIO_CHANNELS + LADSPAM_NUMBER_OF_CONTROL_PORTS;
+
+static const char * ladspam_port_names[LADSPAM_NUMBER_OF_PORTS] = 
 {
-	"Tau",
-	"Trigger",
-	"Out"
+	"out_0",
+	"out_1",
+	"control_0",
+	"control_1",
+	"control_2",
+	"control_3",
+	"control_4",
+	"control_5",
+	"control_6",
+	"control_7"
 };
 
-static const int TAU = 0;
-static const int TRIGGER = 1;
-static const int OUT = 2;
-
-static LADSPA_PortDescriptor ladspam_port_descriptors[] = 
+static LADSPA_PortDescriptor ladspam_port_descriptors[LADSPAM_NUMBER_OF_PORTS] = 
 {
-	LADSPA_PORT_AUDIO | LADSPA_PORT_INPUT,
-	LADSPA_PORT_AUDIO | LADSPA_PORT_INPUT,
-	LADSPA_PORT_AUDIO | LADSPA_PORT_OUTPUT
+	LADSPA_PORT_AUDIO | LADSPA_PORT_OUTPUT,
+	LADSPA_PORT_AUDIO | LADSPA_PORT_OUTPUT,
+	LADSPA_PORT_CONTROL | LADSPA_PORT_INPUT,
+	LADSPA_PORT_CONTROL | LADSPA_PORT_INPUT,
+	LADSPA_PORT_CONTROL | LADSPA_PORT_INPUT,
+	LADSPA_PORT_CONTROL | LADSPA_PORT_INPUT,
+	LADSPA_PORT_CONTROL | LADSPA_PORT_INPUT,
+	LADSPA_PORT_CONTROL | LADSPA_PORT_INPUT,
+	LADSPA_PORT_CONTROL | LADSPA_PORT_INPUT,
+	LADSPA_PORT_CONTROL | LADSPA_PORT_INPUT
 };
 
-static LADSPA_PortRangeHint ladspam_port_range_hints[] = 
+static LADSPA_PortRangeHint ladspam_port_range_hints[LADSPAM_NUMBER_OF_PORTS] = 
 {
-	{ LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE | LADSPA_HINT_DEFAULT_MIDDLE, (float)(0.000001), (float)10.0 },
-	{ LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE | LADSPA_HINT_DEFAULT_MINIMUM, 0.0, 1.0 },
-	{ 0, 0.0, 0.0 }
+	{ 0, 0.0, 0.0 },
+	{ 0, 0.0, 0.0 },
+	{ LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE | LADSPA_HINT_DEFAULT_MIDDLE, -1.0, 1.0 },
+	{ LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE | LADSPA_HINT_DEFAULT_MIDDLE, -1.0, 1.0 },
+	{ LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE | LADSPA_HINT_DEFAULT_MIDDLE, -1.0, 1.0 },
+	{ LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE | LADSPA_HINT_DEFAULT_MIDDLE, -1.0, 1.0 },
+	{ LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE | LADSPA_HINT_DEFAULT_MIDDLE, -1.0, 1.0 },
+	{ LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE | LADSPA_HINT_DEFAULT_MIDDLE, -1.0, 1.0 },
+	{ LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE | LADSPA_HINT_DEFAULT_MIDDLE, -1.0, 1.0 },
+	{ LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE | LADSPA_HINT_DEFAULT_MIDDLE, -1.0, 1.0 }
 };
 
 struct ladspam_plugin
@@ -37,7 +60,7 @@ struct ladspam_plugin
 
 	float m_last_trigger;
 
-	float *m_ports[LADSPAM_NUMBER_OF_PORTS];
+	float *m_ports[LADSPAM_NUMBER_OF_AUDIO_CHANNELS + LADSPAM_NUMBER_OF_CONTROL_PORTS];
 
 	unsigned long m_sample_rate;
 
@@ -65,33 +88,18 @@ static void ladspam_connect_port(LADSPA_Handle instance, unsigned long port, LAD
 	((ladspam_plugin*)instance)->m_ports[port] = data_location;
 }
 
-static void ladspam_run_exp(LADSPA_Handle instance, unsigned long sample_count)
+static void ladspam_run(LADSPA_Handle instance, unsigned long sample_count)
 {
-	ladspam_plugin &i = *(ladspam_plugin*)instance;
-	for (unsigned long index = 0; index < sample_count; ++index)
-	{
-		float trigger = i.m_ports[TRIGGER][index];
-		if (trigger != 0 && i.m_last_trigger == 0) 
-		{
-			i.m_phase = 0;
-		}
-		i.m_last_trigger = trigger;
 
-		i.m_ports[OUT][index] = expf(-i.m_phase/i.m_ports[TAU][index]);
-
-		i.m_phase += 1.0f / (float)i.m_sample_rate;
-		// i.m_phase = fmodf(i.m_phase, 2.0f * (float)M_PI);
-	}
 }
-
 
 
 const LADSPA_Descriptor* ladspa_descriptor(unsigned long Index)
 {
-	if (Index >= LADSPAM_NUMBER_OF_PLUGINS) return 0;
+	if (Index != 0) return 0;
 
 	// static LADSPA_Descriptor *d = new LADSPA_Descriptor;
-	LADSPA_Descriptor *d = &ladspam_descriptors[Index];
+	LADSPA_Descriptor *d = &ladspam_ladspa_descriptor;
 
 	d->UniqueID = 0;
 
@@ -119,13 +127,48 @@ const LADSPA_Descriptor* ladspa_descriptor(unsigned long Index)
 	switch(Index)
 	{
 		case 0:
-			d->Label = "ladspa.m.exp.env";
-			d->Name = "ladspam exponential decay envelope";
-			d->run = ladspam_run_exp;
+			d->Label = "ladspa.m.dssi";
+			d->Name = "ladspa.m dssi plugin";
+			d->run = ladspam_run;
 			break;
 		default:
 			return 0;
 	}
+
+	return d;
+}
+
+static void ladspam_dssi_run_synth(LADSPA_Handle instance, unsigned long sample_count, snd_seq_event_t *events, unsigned long event_count)
+{
+
+}
+
+
+static char *ladspam_dssi_configure(LADSPA_Handle instance, const char *key, const char *value)
+{
+	return 0;
+}
+
+
+const DSSI_Descriptor *dssi_descriptor(unsigned long index)
+{
+	if (index != 0) 
+	{
+		return 0;
+	}
+
+	DSSI_Descriptor *d = &ladspam_dssi_descriptor;
+
+	d->DSSI_API_Version = 1;
+	d->LADSPA_Plugin = ladspa_descriptor(0);
+	d->configure = ladspam_dssi_configure;
+	d->get_program = 0;
+	d->select_program = 0;
+	d->get_midi_controller_for_port = 0;
+	d->run_synth = ladspam_dssi_run_synth;
+	d->run_synth_adding = 0;
+	d->run_multiple_synths = 0;
+	d->run_multiple_synths_adding = 0;
 
 	return d;
 }

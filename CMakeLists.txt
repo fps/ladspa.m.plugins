@@ -13,6 +13,7 @@ set(CPACK_PACKAGE_VERSION 1)
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Florian Paul Schmidt (mista.tapas@gmx.net)")
 set(CPACK_GENERATOR "DEB" "TGZ")
 set(CPACK_DEBIAN_PACKAGE_NAME "ladspa.m.plugins-${PROJECT_VERSION}")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "ladspamm-1-dev, ladspa.m-1-dev, ladspa.m.proto-1-dev")
 include(CPack)
 
 IF(NOT CMAKE_BUILD_TYPE)
@@ -55,6 +56,17 @@ endif()
 
 message(STATUS "The build type is: " ${CMAKE_BUILD_TYPE})
 
+
+#
+# BUILD DEPENDENCIES:
+#
+
+find_package(PkgConfig REQUIRED)
+
+pkg_check_modules(LADSPAMPROTO REQUIRED ladspa.m.proto-1)
+pkg_check_modules(LADSPAM REQUIRED ladspa.m-1)
+pkg_check_modules(DSSI REQUIRED dssi)
+
 #
 # TARGETS
 # 
@@ -68,7 +80,7 @@ add_library(ladspa.m.dssi-${PROJECT_VERSION} SHARED ladspa.m.dssi.cc)
 set_target_properties(ladspa.m.dssi-${PROJECT_VERSION} PROPERTIES PREFIX "")
 
 
-
+include_directories(${DSSI_INCLUDE_DIRS})
 add_executable(ladspa.m.osc.plugins.test-${PROJECT_VERSION} ladspa.m.osc.plugins.cc)
 set_target_properties(ladspa.m.osc.plugins.test-${PROJECT_VERSION} PROPERTIES  COMPILE_FLAGS "-DLADSPAM_MAIN_CC")
 
@@ -79,4 +91,4 @@ set_target_properties(ladspa.m.osc.plugins.test-${PROJECT_VERSION} PROPERTIES  C
 
 install(TARGETS ladspa.m.osc.plugins-${PROJECT_VERSION} LIBRARY DESTINATION lib/ladspa)
 install(TARGETS ladspa.m.env.plugins-${PROJECT_VERSION} LIBRARY DESTINATION lib/ladspa)
-install(TARGETS ladspa.m.dssi-${PROJECT_VERSION} LIBRARY DESTINATION lib/ladspa)
+install(TARGETS ladspa.m.dssi-${PROJECT_VERSION} LIBRARY DESTINATION lib/dssi)
