@@ -127,8 +127,8 @@ const LADSPA_Descriptor* ladspa_descriptor(unsigned long Index)
 	switch(Index)
 	{
 		case 0:
-			d->Label = "ladspa.m.dssi";
-			d->Name = "ladspa.m dssi plugin";
+			d->Label = "ladspa.m.dssi.instrument";
+			d->Name = "ladspa.m dssi instrument plugin";
 			d->run = ladspam_run;
 			break;
 		default:
