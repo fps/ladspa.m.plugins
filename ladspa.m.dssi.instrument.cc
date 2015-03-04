@@ -3,6 +3,9 @@
 
 #include <cmath>
 #include <vector>
+#include <mutex>
+
+#include <ladspa.m-1/synth.h>
 
 static DSSI_Descriptor ladspam_dssi_descriptor;
 
@@ -54,8 +57,14 @@ static LADSPA_PortRangeHint ladspam_port_range_hints[LADSPAM_NUMBER_OF_PORTS] =
 	{ LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE | LADSPA_HINT_DEFAULT_MIDDLE, -1.0, 1.0 }
 };
 
+static const unsigned int ladspam_buffer_size = 64;
+
 struct ladspam_plugin
 {
+	std::mutex m_mutex;
+
+	ladspam1::synth_ptr m_synth;
+
 	float m_phase;
 
 	float m_last_trigger;
@@ -65,6 +74,7 @@ struct ladspam_plugin
 	unsigned long m_sample_rate;
 
 	ladspam_plugin(unsigned long sample_rate) :
+		m_synth(new ladspam1::synth((unsigned)sample_rate, ladspam_buffer_size)),
 		m_phase(0),
 		m_last_trigger(0),
 		m_sample_rate(sample_rate)
@@ -88,9 +98,24 @@ static void ladspam_connect_port(LADSPA_Handle instance, unsigned long port, LAD
 	((ladspam_plugin*)instance)->m_ports[port] = data_location;
 }
 
+static void ladspam_dssi_run_synth(LADSPA_Handle instance, unsigned long sample_count, snd_seq_event_t *events, unsigned long event_count)
+{
+	ladspam_plugin *p = (ladspam_plugin*)instance;
+
+	bool locked = p->m_mutex.try_lock();
+
+	if (!locked)
+	{
+		//! TODO: 
+		return;	
+	}
+	p->m_mutex.unlock();
+}
+
 static void ladspam_run(LADSPA_Handle instance, unsigned long sample_count)
 {
-
+	ladspam_dssi_run_synth(instance, sample_count, 0, 0);
+	
 }
 
 
@@ -138,14 +163,19 @@ const LADSPA_Descriptor* ladspa_descriptor(unsigned long Index)
 	return d;
 }
 
-static void ladspam_dssi_run_synth(LADSPA_Handle instance, unsigned long sample_count, snd_seq_event_t *events, unsigned long event_count)
-{
 
-}
 
 
 static char *ladspam_dssi_configure(LADSPA_Handle instance, const char *key, const char *value)
 {
+	ladspam_plugin *p = (ladspam_plugin*)instance;
+	std::lock_guard<std::mutex> lock(p->m_mutex);
+
+	if (std::string("definition") == key)
+	{
+		p->m_synth = ladspam1::synth_ptr(new ladspam1::synth((unsigned)p->m_sample_rate, ladspam_buffer_size));
+	}
+	
 	return 0;
 }
 
