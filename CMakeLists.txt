@@ -13,7 +13,7 @@ set(CPACK_PACKAGE_VERSION 1)
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Florian Paul Schmidt (mista.tapas@gmx.net)")
 set(CPACK_GENERATOR "DEB" "TGZ")
 set(CPACK_DEBIAN_PACKAGE_NAME "ladspa.m.plugins-${PROJECT_VERSION}")
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "ladspamm-1-dev, ladspa.m-1-dev, ladspa.m.proto-1-dev")
+#set(CPACK_DEBIAN_PACKAGE_DEPENDS "ladspamm-1-dev, ladspa.m-1-dev, ladspa.m.proto-1-dev")
 include(CPack)
 
 #IF(NOT CMAKE_BUILD_TYPE)
@@ -63,8 +63,8 @@ set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wconversion -Wall -pthread 
 
 find_package(PkgConfig REQUIRED)
 
-pkg_check_modules(LADSPAMPROTO REQUIRED ladspa.m.proto-1)
-pkg_check_modules(LADSPAM REQUIRED ladspa.m-1)
+#pkg_check_modules(LADSPAMPROTO REQUIRED ladspa.m.proto-1)
+#pkg_check_modules(LADSPAM REQUIRED ladspa.m-1)
 pkg_check_modules(DSSI REQUIRED dssi)
 
 #
@@ -76,8 +76,8 @@ set_target_properties(ladspa.m.osc.plugins-${PROJECT_VERSION} PROPERTIES PREFIX 
 add_library(ladspa.m.env.plugins-${PROJECT_VERSION} SHARED ladspa.m.env.plugins.cc)
 set_target_properties(ladspa.m.env.plugins-${PROJECT_VERSION} PROPERTIES PREFIX "")
 
-add_library(ladspa.m.dssi.instrument-${PROJECT_VERSION} SHARED ladspa.m.dssi.instrument.cc)
-set_target_properties(ladspa.m.dssi.instrument-${PROJECT_VERSION} PROPERTIES PREFIX "")
+#add_library(ladspa.m.dssi.instrument-${PROJECT_VERSION} SHARED ladspa.m.dssi.instrument.cc)
+#set_target_properties(ladspa.m.dssi.instrument-${PROJECT_VERSION} PROPERTIES PREFIX "")
 
 
 include_directories(${DSSI_INCLUDE_DIRS})
@@ -91,4 +91,4 @@ set_target_properties(ladspa.m.osc.plugins.test-${PROJECT_VERSION} PROPERTIES  C
 
 install(TARGETS ladspa.m.osc.plugins-${PROJECT_VERSION} LIBRARY DESTINATION lib/ladspa)
 install(TARGETS ladspa.m.env.plugins-${PROJECT_VERSION} LIBRARY DESTINATION lib/ladspa)
-install(TARGETS ladspa.m.dssi.instrument-${PROJECT_VERSION} LIBRARY DESTINATION lib/dssi)
+# install(TARGETS ladspa.m.dssi.instrument-${PROJECT_VERSION} LIBRARY DESTINATION lib/dssi)
