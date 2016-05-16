@@ -65,7 +65,7 @@ find_package(PkgConfig REQUIRED)
 
 #pkg_check_modules(LADSPAMPROTO REQUIRED ladspa.m.proto-1)
 #pkg_check_modules(LADSPAM REQUIRED ladspa.m-1)
-pkg_check_modules(DSSI REQUIRED dssi)
+#pkg_check_modules(DSSI REQUIRED dssi)
 
 #
 # TARGETS
